@@ -1,1 +1,6 @@
 requests
+httpx
+tls-client
+websocket-client
+colorama
+
