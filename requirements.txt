@@ -1,8 +1,4 @@
-requests
-httpx
 tls-client
+requests
 websocket-client
 colorama
-re
-time
-random
