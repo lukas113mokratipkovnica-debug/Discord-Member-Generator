@@ -6,7 +6,7 @@ from json import dumps
 from datetime import timedelta, datetime
 from colorama import Fore
 from libs.eazyui import Colors, Colorate, Center
-from libs.solver import Solver
+from libs.solver import Solver 
 
 res = requests.get("https://discord.com/login").text
 file_with_build_num = 'https://discord.com/assets/' + \
