@@ -18,27 +18,44 @@ from libs.eazyui import Center, Colorate, Colors  # noqa: F401
 from libs.solver import Solver
 
 
-def get_discord_build_number() -> int:
-    res = requests.get("https://discord.com/login", timeout=15).text
-    matches = re.findall(r"assets/([A-Za-z0-9_-]+)\.js", res)
-    if not matches:
-        raise RuntimeError("Could not find any JS asset bundles on Discord login page")
+def get_discord_build_number(fallback: int = 300000) -> int:
+    env_build = os.environ.get("DISCORD_BUILD_NUMBER")
+    if env_build and env_build.isdigit():
+        return int(env_build)
 
-    asset_name = f"{matches[-2]}.js" if len(matches) >= 2 else f"{matches[0]}.js"
-    asset_url = f"https://discord.com/assets/{asset_name}"
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
 
-    req_file_build = requests.get(asset_url, timeout=15).text
-    marker = "buildNumber"
-    idx = req_file_build.find(marker)
-    if idx == -1:
-        raise RuntimeError(f"Could not find '{marker}' in {asset_url}")
+    try:
+        resp = requests.get("https://discord.com/login", headers=headers, timeout=15)
+        html = resp.text
 
-    num_match = re.search(r"buildNumber[\"':\s,]+(\d+)", req_file_build[idx : idx + 60])
-    if not num_match:
-        raise RuntimeError(f"Could not parse build number near index {idx} in {asset_url}")
+        # Match /assets/<name>.js or assets/<name>.js
+        matches = re.findall(r"(?:^|[\"'/])assets/([A-Za-z0-9_.-]+)\.js", html)
+        if matches:
+            asset_name = f"{matches[-2]}.js" if len(matches) >= 2 else f"{matches[0]}.js"
+            asset_url = f"https://discord.com/assets/{asset_name}"
+            js_text = requests.get(asset_url, headers=headers, timeout=15).text
 
-    return int(num_match.group(1))
+            num_match = re.search(r"buildNumber[\"':\s,]+(\d{5,7})", js_text)
+            if num_match:
+                return int(num_match.group(1))
 
+        Output("ERROR").log(
+            f"Build scrape failed (status={resp.status_code}, len={len(html)}); "
+            f"using fallback build {fallback}"
+        )
+    except Exception as exc:
+        Output("ERROR").log(f"Build scrape error ({exc}); using fallback build {fallback}")
+
+    return fallback
 
 buildNumb = get_discord_build_number()
 
