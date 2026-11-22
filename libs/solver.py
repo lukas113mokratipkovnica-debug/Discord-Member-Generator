@@ -1,4 +1,4 @@
-import requests, json
+Import requests, json
 import time
 import httpx
 keyCap = json.load(open('./config.json', 'r'))['capmonster-key']
