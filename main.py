@@ -18,10 +18,25 @@ from libs.eazyui import Center, Colorate, Colors  # noqa: F401
 from libs.solver import Solver
 
 
-def get_discord_build_number(fallback: int = 300000) -> int:
-    env_build = os.environ.get("DISCORD_BUILD_NUMBER")
-    if env_build and env_build.isdigit():
-        return int(env_build)
+class Output:
+    def __init__(self, level: str) -> None:
+        self.level = level
+        self.color_map = {
+            "INFO": (Fore.LIGHTBLUE_EX, "*"),
+            "INFO2": (Fore.LIGHTCYAN_EX, "^"),
+            "CAPTCHA": (Fore.LIGHTMAGENTA_EX, "C"),
+            "ERROR": (Fore.LIGHTRED_EX, "!"),
+            "SUCCESS": (Fore.LIGHTGREEN_EX, "$"),
+        }
+
+    def log(self, *args, **kwargs) -> None:
+        color, badge = self.color_map.get(self.level, (Fore.LIGHTWHITE_EX, self.level))
+        time_now = datetime.now().strftime("%H:%M:%S")
+        message = " ".join(str(a) for a in args)
+        if kwargs:
+            extra = " ".join(f"{k}={v}" for k, v in kwargs.items())
+            message = f"{message} {extra}".strip()
+        print(f"[{Fore.LIGHTBLACK_EX}{time_now}{Fore.RESET}] ({color}{badge.upper()}{Fore.RESET}) {message}")
 
     headers = {
         "User-Agent": (
