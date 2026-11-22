@@ -1,5 +1,5 @@
 tls-client
 requests
+httpx
 websocket-client
 colorama
-httpx
