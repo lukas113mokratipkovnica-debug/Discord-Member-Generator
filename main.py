@@ -52,7 +52,8 @@ def get_discord_build_number(fallback: int = 300000) -> int:
             f"Build scrape failed (status={resp.status_code}, len={len(html)}); "
             f"using fallback build {fallback}"
         )
-    except Exception as exc:
+    except 
+        Exception as exc:
         Output("ERROR").log(f"Build scrape error ({exc}); using fallback build {fallback}")
 
     return fallback
